@@ -17,7 +17,25 @@ class ChatClient:
         self.users = dict()
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client.connect((self.host, self.port))
+        self.load_db()
         self.send_username()
+
+    def save_db(self):
+        with open('db.json', 'r') as f:
+            alldata = json.loads(f.read())
+            alldata[self.username] = {
+                'users':self.users,
+                'gruplar':self.gruplar
+            }
+        with open('db.json', 'w') as f:
+            f.write(json.dumps(alldata))
+    
+    def load_db(self):
+        with open('db.json', 'r') as f:
+            alldata = json.loads(f.read())
+            if self.username in alldata:
+                self.users = alldata[self.username]["users"]
+                self.gruplar = alldata[self.username]["gruplar"]
 
     # kullanıcı adını göndermek için
     def send_username(self):
@@ -131,6 +149,7 @@ class ChatClient:
                         self.users[message['sender']]['messages'].append(msg)
                     print(self.users)
                     continue
+                self.save_db()
                 sub_main(self)
 
 
@@ -243,6 +262,7 @@ def sub_main(client):
                             input("Devam etmek için bir tuşa basınız")
                         else:
                             pass
+        client.save_db()
         sub_main(client)
 
 main()
